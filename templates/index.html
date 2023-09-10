@@ -4,37 +4,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatbot</title>
+    <title>Baltimore Tenant Rights Chatbot</title>
     <!-- Bootstrap CSS -->
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        .chatbox {
-            height: 500px;
-            overflow-y: auto;
+        body {
+            background-color: #f5f5f5;
+            font-family: 'Arial', sans-serif;
         }
+
+        .container {
+            max-width: 600px;
+            margin: 5% auto;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.1);
+        }
+
+        .chatbox {
+            height: 400px;
+            overflow-y: auto;
+            border: 1px solid #e0e0e0;
+            padding: 10px;
+            border-radius: 8px;
+        }
+
         .user-message,
         .bot-message {
-            background-color: #e8e8e8;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            width: 80%;
         }
+
+        .user-message {
+            background-color: #e8e8e8;
+            align-self: flex-end;
+        }
+
         .bot-message {
             background-color: #d1e7dd;
+            align-self: flex-start;
         }
+
+        .chat-entry {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .chat-entry button {
+            width: 20%;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #333;
+        }
+
     </style>
 </head>
 
 <body>
 
-<div class="container mt-5">
-    <div class="chatbox p-3 border rounded"></div>
-    <div class="mt-3">
-        <input type="text" id="userInput" class="form-control" placeholder="Ask me anything...">
-        <button id="sendButton" class="btn btn-primary mt-2" type="button">Send</button>
+<div class="container">
+    <h1>Baltimore Tenant Rights Chatbot</h1>
+    <p>Welcome! I'm here to provide information on tenant rights in Baltimore. Ask me anything!</p>
+    <div class="chatbox mb-3"></div>
+    <div class="chat-entry">
+        <input type="text" id="userInput" class="form-control mr-3" placeholder="Type your query...">
+        <button id="sendButton" class="btn btn-primary" type="button">Ask</button>
     </div>
 </div>
 
 <!-- jQuery and Bootstrap JS -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<!-- Your chatbot interaction script will go here -->
 
 <script>
     $("#sendButton").click(function() {
@@ -52,6 +101,8 @@
 
             // Clear the input box
             $("#userInput").val("");
+        }).fail(function() {
+            alert("Error: Unable to get a response from the server.");
         });
     });
 </script>

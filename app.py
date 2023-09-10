@@ -9,6 +9,28 @@ model = GPT2LMHeadModel.from_pretrained(model_name)
 tokenizer = GPT2Tokenizer.from_pretrained(model_name)
 
 
+# Function to load Q&A pairs from the file
+def load_qa_pairs(filename):
+    with open(filename, 'r') as file:
+        lines = file.readlines()
+
+    qa_dict = {}
+    for i in range(0, len(lines) - 1, 2):  # Iterate over lines in steps of 2
+        question = lines[i].strip().replace("Q: ", "")
+        answer = lines[i + 1].strip().replace("A: ", "")
+        qa_dict[question] = answer
+    return qa_dict
+
+
+# Load the Q&A pairs
+qa_dict = load_qa_pairs("law-qa.txt")
+
+
+# Function to fetch answers from Q&A dict
+def get_answer_from_qa_dict(question):
+    return qa_dict.get(question, None)
+
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -27,9 +49,13 @@ def remove_repeated_sentences(text):
 def ask():
     message = request.form['message']
 
-    input_ids = tokenizer.encode(message, return_tensors="pt")
+    # Check if the question exists in the Q&A dictionary
+    direct_answer = get_answer_from_qa_dict(message)
+    if direct_answer:
+        return jsonify({'message': direct_answer})
 
-    # Enhancing the model generation
+    # If not found in Q&A dictionary, generate an answer with GPT-2
+    input_ids = tokenizer.encode(message, return_tensors="pt")
     response_ids = model.generate(input_ids,
                                   max_length=100,
                                   temperature=0.8,
@@ -39,7 +65,6 @@ def ask():
                                   no_repeat_ngram_size=2,
                                   early_stopping=True,
                                   pad_token_id=tokenizer.eos_token_id)
-
     response = tokenizer.decode(response_ids[0], skip_special_tokens=True)
     refined_response = remove_repeated_sentences(response)
 
