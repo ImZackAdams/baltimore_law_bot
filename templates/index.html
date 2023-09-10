@@ -86,25 +86,32 @@
 <!-- Your chatbot interaction script will go here -->
 
 <script>
-    $("#sendButton").click(function() {
-        let message = $("#userInput").val();
+  $("#sendButton").click(function() {
+    let message = $("#userInput").val();
 
-        // Send message to server
-        $.post("/ask", { message: message }, function(response) {
+    $.ajax({
+        url: '/ask',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ message: message }),
+        dataType: 'json',
+        success: function(response) {
             // Append the message and response to the chatbox
             $(".chatbox").append(`
                 <div class="mt-2">
                     <div class="user-message p-2 mb-1 rounded">${message}</div>
-                    <div class="bot-message p-2 mb-1 rounded ml-5">${response.message}</div>
+                    <div class="bot-message p-2 mb-1 rounded ml-5">${response.answer}</div>
                 </div>
             `);
-
             // Clear the input box
             $("#userInput").val("");
-        }).fail(function() {
+        },
+        error: function() {
             alert("Error: Unable to get a response from the server.");
-        });
+        }
     });
+});
+
 </script>
 
 </body>

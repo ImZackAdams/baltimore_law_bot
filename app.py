@@ -1,74 +1,71 @@
-from flask import Flask, render_template, request, jsonify
-from transformers import GPT2Tokenizer, GPT2LMHeadModel
+from flask import Flask, request, jsonify, render_template
+from transformers import BertTokenizer, BertForQuestionAnswering
+import torch
 
 app = Flask(__name__)
 
-# Load the GPT-2 model and tokenizer
-model_name = "gpt2-medium"
-model = GPT2LMHeadModel.from_pretrained(model_name)
-tokenizer = GPT2Tokenizer.from_pretrained(model_name)
-
-
-# Function to load Q&A pairs from the file
-def load_qa_pairs(filename):
-    with open(filename, 'r') as file:
-        lines = file.readlines()
-
-    qa_dict = {}
-    for i in range(0, len(lines) - 1, 2):  # Iterate over lines in steps of 2
-        question = lines[i].strip().replace("Q: ", "")
-        answer = lines[i + 1].strip().replace("A: ", "")
-        qa_dict[question] = answer
-    return qa_dict
-
-
-# Load the Q&A pairs
-qa_dict = load_qa_pairs("law-qa.txt")
-
-
-# Function to fetch answers from Q&A dict
-def get_answer_from_qa_dict(question):
-    return qa_dict.get(question, None)
-
 
 @app.route('/')
-def index():
+def home():
     return render_template('index.html')
 
 
-def remove_repeated_sentences(text):
-    sentences = text.split('.')
-    cleaned_sentences = []
-    for idx, sentence in enumerate(sentences[:-1]):  # ignore the last sentence (as it's likely cut-off)
-        if sentence != sentences[idx + 1]:
-            cleaned_sentences.append(sentence)
-    return '.'.join(cleaned_sentences) + '.'  # append a period for formatting
+# Load pre-trained model and tokenizer
+model_name = "bert-large-uncased-whole-word-masking-finetuned-squad"
+model = BertForQuestionAnswering.from_pretrained(model_name)
+tokenizer = BertTokenizer.from_pretrained(model_name)
+
+
+def get_answer(question, context):
+    # Split context into paragraphs
+    paragraphs = context.split('\n\n')
+
+    answers = []
+
+    for paragraph in paragraphs:
+        inputs = tokenizer(question, paragraph, return_tensors="pt", max_length=512, truncation=True)
+        input_ids = inputs["input_ids"].tolist()[0]
+
+        outputs = model(**inputs)
+        answer_start_scores = outputs.start_logits
+        answer_end_scores = outputs.end_logits
+
+        answer_start = torch.argmax(answer_start_scores)
+        answer_end = torch.argmax(answer_end_scores) + 1
+
+        answer = tokenizer.convert_tokens_to_string(tokenizer.convert_ids_to_tokens(input_ids[answer_start:answer_end]))
+        score = torch.max(answer_start_scores).item() + torch.max(answer_end_scores).item()
+
+        answers.append((answer, score))
+
+    # Sort answers based on score
+    answers.sort(key=lambda x: x[1], reverse=True)
+
+    best_answer = answers[0][0]
+
+    # If answer is empty or too short, default to a generic message
+    if len(best_answer.strip()) < 3:
+        return "I'm sorry, I couldn't find a specific answer to your question. Please rephrase or ask another question."
+
+    return best_answer
 
 
 @app.route('/ask', methods=['POST'])
 def ask():
-    message = request.form['message']
+    user_question = request.json["message"]
 
-    # Check if the question exists in the Q&A dictionary
-    direct_answer = get_answer_from_qa_dict(message)
-    if direct_answer:
-        return jsonify({'message': direct_answer})
+    # Assuming all questions from the law-qa.txt will be used as context.
+    with open("law-qa.txt", 'r') as f:
+        context = f.read()
 
-    # If not found in Q&A dictionary, generate an answer with GPT-2
-    input_ids = tokenizer.encode(message, return_tensors="pt")
-    response_ids = model.generate(input_ids,
-                                  max_length=100,
-                                  temperature=0.8,
-                                  num_beams=5,
-                                  top_k=40,
-                                  top_p=0.95,
-                                  no_repeat_ngram_size=2,
-                                  early_stopping=True,
-                                  pad_token_id=tokenizer.eos_token_id)
-    response = tokenizer.decode(response_ids[0], skip_special_tokens=True)
-    refined_response = remove_repeated_sentences(response)
+    answer = get_answer(user_question, context)
+    return jsonify({"answer": answer})
 
-    return jsonify({'message': refined_response})
+
+@app.errorhandler(400)
+def bad_request(e):
+    app.logger.error(f"Bad request: {e.description}")
+    return jsonify(error=str(e.description)), 400
 
 
 if __name__ == '__main__':
