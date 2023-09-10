@@ -4,7 +4,7 @@ from transformers import GPT2Tokenizer, GPT2LMHeadModel
 app = Flask(__name__)
 
 # Load the GPT-2 model and tokenizer
-model_name = "gpt2-large"
+model_name = "gpt2-medium"
 model = GPT2LMHeadModel.from_pretrained(model_name)
 tokenizer = GPT2Tokenizer.from_pretrained(model_name)
 
@@ -31,10 +31,10 @@ def ask():
 
     # Enhancing the model generation
     response_ids = model.generate(input_ids,
-                                  max_length=200,
+                                  max_length=100,
                                   temperature=0.8,
                                   num_beams=5,
-                                  top_k=50,
+                                  top_k=40,
                                   top_p=0.95,
                                   no_repeat_ngram_size=2,
                                   early_stopping=True,
