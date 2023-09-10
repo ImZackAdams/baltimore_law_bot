@@ -1,6 +1,11 @@
 from flask import Flask, request, jsonify, render_template
 from transformers import BertTokenizer, BertForQuestionAnswering
 import torch
+import nltk
+from nltk.corpus import wordnet
+import random
+
+nltk.download('wordnet')
 
 app = Flask(__name__)
 
@@ -14,6 +19,40 @@ def home():
 model_name = "bert-large-uncased-whole-word-masking-finetuned-squad"
 model = BertForQuestionAnswering.from_pretrained(model_name)
 tokenizer = BertTokenizer.from_pretrained(model_name)
+
+
+def get_synonyms(word):
+    synonyms = set()
+    for syn in wordnet.synsets(word):
+        for lemma in syn.lemmas():
+            synonyms.add(lemma.name())
+    if word in synonyms:
+        synonyms.remove(word)
+    return list(synonyms)
+
+
+def replace_with_synonyms(sentence):
+    words = sentence.split()
+    if not words:
+        return sentence
+
+    # Randomly select a word
+    word_to_replace = random.choice(words)
+
+    # Get synonyms for the word
+    synonyms = get_synonyms(word_to_replace)
+
+    # If synonyms are found, replace the original word with a synonym
+    if synonyms:
+        replacement = random.choice(synonyms)
+        sentence = sentence.replace(word_to_replace, replacement, 1)
+
+    return sentence
+
+
+def filter_answer(answer):
+    # Remove special tokens
+    return answer.replace("[CLS]", "").replace("[SEP]", "").strip()
 
 
 def get_answer(question, context):
@@ -34,6 +73,7 @@ def get_answer(question, context):
         answer_end = torch.argmax(answer_end_scores) + 1
 
         answer = tokenizer.convert_tokens_to_string(tokenizer.convert_ids_to_tokens(input_ids[answer_start:answer_end]))
+        answer = filter_answer(answer)  # Filtering the answer here
         score = torch.max(answer_start_scores).item() + torch.max(answer_end_scores).item()
 
         answers.append((answer, score))
@@ -43,8 +83,8 @@ def get_answer(question, context):
 
     best_answer = answers[0][0]
 
-    # If answer is empty or too short, default to a generic message
-    if len(best_answer.strip()) < 3:
+    # If answer is empty, too short, or contains only special tokens, default to a generic message
+    if len(best_answer.strip()) < 3 or best_answer in ["[CLS]", "[SEP]"]:
         return "I'm sorry, I couldn't find a specific answer to your question. Please rephrase or ask another question."
 
     return best_answer
@@ -54,11 +94,14 @@ def get_answer(question, context):
 def ask():
     user_question = request.json["message"]
 
+    # Augment the question
+    user_question_augmented = replace_with_synonyms(user_question)
+
     # Assuming all questions from the law-qa.txt will be used as context.
     with open("law-qa.txt", 'r') as f:
         context = f.read()
 
-    answer = get_answer(user_question, context)
+    answer = get_answer(user_question_augmented, context)
     return jsonify({"answer": answer})
 
 
