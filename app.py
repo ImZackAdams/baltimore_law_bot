@@ -30,13 +30,15 @@ def ask():
     input_ids = tokenizer.encode(message, return_tensors="pt")
 
     # Enhancing the model generation
-    response_ids = model.generate(
-        input_ids,
-        max_length=150,
-        temperature=0.8,
-        repetition_penalty=1.2,
-        pad_token_id=tokenizer.eos_token_id
-    )
+    response_ids = model.generate(input_ids,
+                                  max_length=200,
+                                  temperature=0.8,
+                                  num_beams=5,
+                                  top_k=50,
+                                  top_p=0.95,
+                                  no_repeat_ngram_size=2,
+                                  early_stopping=True,
+                                  pad_token_id=tokenizer.eos_token_id)
 
     response = tokenizer.decode(response_ids[0], skip_special_tokens=True)
     refined_response = remove_repeated_sentences(response)
