@@ -9,10 +9,26 @@ model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
 qa_model = BertForQuestionAnswering.from_pretrained('bert-large-uncased-whole-word-masking-finetuned-squad')
 tokenizer = BertTokenizer.from_pretrained('bert-large-uncased-whole-word-masking-finetuned-squad')
 
+
+def extract_content_from_section(section_title, main_content):
+    if section_title not in main_content:
+        print(f"Warning: {section_title} not found in main content!")
+        return ""
+
+    start_idx = main_content.index(section_title)
+    end_idx = main_content.find("DIVISION", start_idx + 1)
+
+    if end_idx == -1:
+        end_idx = len(main_content)
+
+    return main_content[start_idx:end_idx]
+
+
 def is_unsatisfactory(answer):
     if "division" in answer.lower() or "subtitle" in answer.lower():
         return True
     return False
+
 
 def answer_question(question, context):
     input_ids = tokenizer.encode(question, context, return_tensors='pt')
@@ -155,7 +171,8 @@ top_sections = retrieve_top_n_sections(reformulated_query, embeddings_combined_d
 best_answer = None
 best_section = None
 for section in top_sections:
-    answer = answer_question(query, section)
+    section_content = extract_content_from_section(section, cleaned_content)  # Extracting the content of the section
+    answer = answer_question(query, section_content)  # Now getting the answer from that section's content
     if answer and not is_unsatisfactory(answer):
         best_answer = answer
         best_section = section
@@ -166,3 +183,14 @@ if best_answer:
     print("Answer:", best_answer)
 else:
     print("No relevant section found.")
+
+section_title = "DIVISION II - 5 Licensing of Rental Dwellings"
+position = cleaned_content.find(section_title)
+
+if position != -1:
+    print("Found section title. Surrounding content:")
+    print(cleaned_content[max(position-50, 0):position + len(section_title) + 50])
+else:
+    print("Section title not found in cleaned_content.")
+
+
