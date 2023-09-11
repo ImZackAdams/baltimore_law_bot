@@ -1,3 +1,4 @@
+import os
 from flask import Flask, request, jsonify, render_template
 from transformers import BertTokenizer, BertForQuestionAnswering
 import torch
@@ -8,6 +9,15 @@ import random
 nltk.download('wordnet')
 
 app = Flask(__name__)
+
+# Load pre-trained model and tokenizer
+model_name = "bert-large-uncased-whole-word-masking-finetuned-squad"
+model = BertForQuestionAnswering.from_pretrained(model_name)
+tokenizer = BertTokenizer.from_pretrained(model_name)
+
+# Load context once during app initialization
+with open(os.path.join(os.getcwd(), "law-qa.txt"), 'r') as f:
+    context = f.read()
 
 
 @app.route('/')
@@ -92,15 +102,11 @@ def get_answer(question, context):
 
 @app.route('/ask', methods=['POST'])
 def ask():
-    user_question = request.json["message"]
+    user_question = request.json.get("message", "")
+    if not user_question:
+        return jsonify({"error": "No message provided"}), 400
 
-    # Augment the question
     user_question_augmented = replace_with_synonyms(user_question)
-
-    # Assuming all questions from the law-qa.txt will be used as context.
-    with open("law-qa.txt", 'r') as f:
-        context = f.read()
-
     answer = get_answer(user_question_augmented, context)
     return jsonify({"answer": answer})
 
