@@ -71,8 +71,9 @@ cleaned_content = clean_text(pdf_content)
 # Extract divisions and subtitles
 divisions_subtitles_data = extract_divisions_and_subtitles(cleaned_content)
 
+print(divisions_subtitles_data)
 # Print extracted data for verification
-for division_title, subtitles in divisions_subtitles_data.items():
-    print(f"\nDivision: {division_title}")
-    for subtitle in subtitles:
-        print(f"Subtitle: {subtitle[:100]}...")  # Printing first 100 characters for brevity
+# for division_title, subtitles in divisions_subtitles_data.items():
+#     print(f"\nDivision: {division_title}")
+#     for subtitle in subtitles:
+#         print(f"Subtitle: {subtitle[:100]}...")  # Printing first 100 characters for brevity
