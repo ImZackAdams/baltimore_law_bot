@@ -1,14 +1,12 @@
 import PyPDF2
 
-
-def extract_text_from_pdf(pdf_path):
+def extract_text_from_pdf(pdf_path='legaldocs/Article-13-housing.pdf'):
     text = ''
     with open(pdf_path, 'rb') as file:
         pdf = PyPDF2.PdfReader(file)
         for page in pdf.pages:
             text += page.extract_text()
     return text
-
 
 def clean_text(text):
     remove_list = [

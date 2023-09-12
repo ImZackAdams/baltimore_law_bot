@@ -1,7 +1,12 @@
 from flask import Blueprint, render_template, request, jsonify
+from app.models.embeddings import model, qa_model, tokenizer, answer_question
+from app.utils.query_handling import handle_user_query
+from . import main_law_text
 
 # Create a blueprint
 views = Blueprint('views', __name__)
+
+
 
 
 @views.route('/')
@@ -17,9 +22,8 @@ def ask():
     if not message:
         return jsonify({'answer': 'Please provide a question.'}), 400
 
-    # Here, you would use your chatbot logic to generate a response.
-    # For the sake of this example, I'm just echoing back the same message:
-    response = f"You asked: {message}"
+    # Use the handle_user_query function to get the best answer
+    _, response = handle_user_query(message, main_law_text, embeddings)
 
     # Return the response as JSON
     return jsonify({'answer': response})
@@ -27,10 +31,12 @@ def ask():
 
 @views.route('/answer', methods=['POST'])
 def get_answer():
-    # Your existing logic for the /answer route
     query = request.form.get('query')
-    if not query:
-        return render_template('error.html', error_message="Query not provided.")
 
-    # Placeholder response:
-    return render_template('answer.html', section="Sample Section", answer="Sample Answer based on the query.")
+    if not query:
+        return jsonify({"error": "Query not provided."}), 400
+
+    # For simplicity, let's pass None for embeddings for now
+    best_section, best_answer = handle_user_query(query, main_law_text, None)
+
+    return jsonify({"section": best_section, "answer": best_answer})

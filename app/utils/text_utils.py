@@ -83,7 +83,10 @@ def retrieve_most_relevant(query, embeddings):
 
 
 def reformulate_query(query):
-    # Simple rule-based reformulation can be extended
-    query = query.lower().replace("does", "").replace("is", "").replace("are", "").replace("?", "")
-    query = query.replace("me", "").replace("my", "").replace("a", "")
-    return ' '.join(query.split())
+    stopwords = ["does", "is", "are", "me", "my", "a", "?"]
+    words = query.lower().split()
+    cleaned_words = [word for word in words if word not in stopwords]
+
+    # Optionally add more sophisticated reformulation techniques here
+
+    return ' '.join(cleaned_words)

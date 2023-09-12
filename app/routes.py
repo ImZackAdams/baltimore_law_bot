@@ -3,7 +3,8 @@ from flask import render_template, request, jsonify
 # Import relevant modules and functions
 from app.models.embeddings import model, qa_model, tokenizer, answer_question, create_combined_embeddings
 from app.utils.pdf_processing import extract_text_from_pdf, clean_text
-from app.utils.text_utils import extract_content_from_section, retrieve_top_n_sections, is_unsatisfactory, reformulate_query
+from app.utils.text_utils import extract_content_from_section, retrieve_top_n_sections, is_unsatisfactory, \
+    reformulate_query
 from app.utils.query_handling import handle_user_query
 
 # Assuming the Flask app instance is initialized in a file named app.py or __init__.py and not directly here
@@ -35,16 +36,14 @@ def get_answer():
     """Handles user query and returns the best answer."""
     query = request.form['query']
 
-    # Placeholder logic to process the query and determine best_answer and best_section
-    # This logic should ideally be broken out into helper functions or methods, but for simplicity's sake, I'm placing it here.
+    # Placeholder logic to process the query and determine best_answer and best_section This logic should ideally be
+    # broken out into helper functions or methods, but for simplicity's sake, I'm placing it here.
     best_answer = "Your best answer will be determined here"
     best_section = "The relevant section will be identified here"
     # ... (rest of the code related to user query handling)
 
     # Instead of print, send the results back to the client using render_template or jsonify
     return render_template('answer.html', section=best_section, answer=best_answer)
-
-
 
 
 # Error Handlers
@@ -60,7 +59,6 @@ def internal_server_error(e):
     """Handles internal server errors and renders a custom page."""
     app.logger.error(f"Internal server error: {e}")
     return render_template('500.html'), 500
-
 
 
 if __name__ == '__main__':
