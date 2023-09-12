@@ -150,7 +150,7 @@ def reformulate_query(query):
 
 
 # Extract and clean content from the PDF
-pdf_content = extract_text_from_pdf('legaldocs/Article-13-housing.pdf')
+pdf_content = extract_text_from_pdf('../legaldocs/Article-13-housing.pdf')
 cleaned_content = clean_text(pdf_content)
 
 # Extract divisions and subtitles

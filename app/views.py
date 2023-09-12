@@ -1,12 +1,17 @@
 from flask import Blueprint, render_template, request, jsonify
-from app.models.embeddings import model, qa_model, tokenizer, answer_question
+from app.models.embeddings import model, qa_model, tokenizer, answer_question, create_combined_embeddings
 from app.utils.query_handling import handle_user_query
-from . import main_law_text
+from .shared import main_law_text
 
 # Create a blueprint
 views = Blueprint('views', __name__)
 
+# Split the main law text into sentences or paragraphs for simplicity.
+# In a real-world scenario, you might want a more sophisticated method to split the text.
+sentences = main_law_text.split(".")
 
+# Create embeddings
+embeddings = create_combined_embeddings(sentences)
 
 
 @views.route('/')
