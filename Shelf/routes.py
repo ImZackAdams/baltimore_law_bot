@@ -24,11 +24,12 @@ def ask():
     # Process the user_message using your chatbot logic
     response = handle_user_query(user_message)
 
-    # Assuming response is a tuple of (best_section, best_answer)
+    # Assuming response is a tuple of (best_secti on, best_answer)
     _, best_answer = response  # We are only using the answer part here.
 
     # Return the answer
     return jsonify(answer=best_answer)
+
 
 
 @app.route('/answer', methods=['POST'])

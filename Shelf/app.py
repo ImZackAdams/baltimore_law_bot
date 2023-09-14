@@ -16,7 +16,7 @@ model = BertForQuestionAnswering.from_pretrained(model_name)
 tokenizer = BertTokenizer.from_pretrained(model_name)
 
 # Load context once during app initialization
-with open(os.path.join(os.getcwd(), "../law-qa.txt"), 'r') as f:
+with open(os.path.join(os.getcwd(), "../legaldocs/law-qa.txt"), 'r') as f:
     context = f.read()
 
 
