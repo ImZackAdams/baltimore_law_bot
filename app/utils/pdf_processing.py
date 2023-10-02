@@ -23,3 +23,43 @@ def clean_text(text):
         text = text.replace(item, '')
     text = text.replace("D\nIVISION", "DIVISION")
     return text.strip()
+
+
+def extract_sections_titles_subtitles(text):
+    sections = []
+    current_title = ""
+    current_subtitle = ""
+    current_content = ""
+
+    # You would need to adapt these to the actual markers or formatting used in your document
+    title_marker = "TITLE:"
+    subtitle_marker = "SUBTITLE:"
+
+    for line in text.split('\n'):
+        if title_marker in line:
+            # Save the current section before starting a new one
+            if current_content:
+                sections.append({
+                    'title': current_title,
+                    'subtitle': current_subtitle,
+                    'content': current_content.strip(),
+                })
+
+            # Start a new section
+            current_title = line.replace(title_marker, '').strip()
+            current_subtitle = ""
+            current_content = ""
+        elif subtitle_marker in line:
+            current_subtitle = line.replace(subtitle_marker, '').strip()
+        else:
+            current_content += line + '\n'
+
+    # Don't forget to save the last section
+    if current_content:
+        sections.append({
+            'title': current_title,
+            'subtitle': current_subtitle,
+            'content': current_content.strip(),
+        })
+
+    return sections
