@@ -75,7 +75,7 @@ def handle_user_query(query, main_law_text, embeddings):
             subtitle = section['subtitle']
             content = section['content']
 
-            ans = answer_question(qa_model, tokenizer, refined_query, content)
+            ans = answer_question(refined_query, content)
 
             if not is_unsatisfactory(ans):
                 answers.append((title, subtitle, ans))
