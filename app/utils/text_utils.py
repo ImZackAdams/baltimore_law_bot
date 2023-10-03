@@ -45,7 +45,7 @@ def extract_divisions_and_subtitles(main_content):
     division_matches = re.findall(r'DIVISION [IVXLCDM]+', main_content)
 
     # Refining the subtitle pattern
-    subtitle_pattern = re.compile(r'Subtitle (\d+[A-Z]*\.)\s*([^S]{10,}?)(?=Subtitle|DIVISION|\Z)', re.DOTALL)
+    subtitle_pattern = re.compile(r'SUBTITLE (\d+[A-Z]*\.)\s*([^S]{10,}?)(?=SUBTITLE|DIVISION|\Z)', re.DOTALL)
 
     for i in range(len(division_matches)):
         start_idx = main_content.index(division_matches[i])
@@ -90,25 +90,11 @@ def reformulate_query(query):
     stopwords = ["does", "is", "are", "me", "my", "a", "?"]
     words = query.lower().split()
     cleaned_words = [word for word in words if word not in stopwords]
-
-    # Optionally add more sophisticated reformulation techniques here
-
     return ' '.join(cleaned_words)
 
 
 def split_sections(main_content):
-    """
-    Split the main content into sections based on divisions and subtitles.
-
-    Args:
-    - main_content (str): The entire law text.
-
-    Returns:
-    - List[Dict]: A list of dictionaries where each dictionary represents a section with keys 'title', 'subtitle', and 'content'.
-    """
     sections = []
-
-    # Extract division data
     division_data = extract_divisions_and_subtitles(main_content)  # from text_utils.py
 
     for division, subtitles in division_data.items():
@@ -119,5 +105,5 @@ def split_sections(main_content):
                 'subtitle': subtitle,
                 'content': section_content
             })
-
     return sections
+

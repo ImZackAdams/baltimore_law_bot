@@ -1,4 +1,5 @@
 import PyPDF2
+import re
 
 
 def extract_text_from_pdf(pdf_path='legaldocs/Article-13-housing.pdf'):
@@ -16,12 +17,15 @@ def clean_text(text):
         "Avery Aisenstark, Director", "Copyright © 2022",
         "The Mayor and City Council of Baltimore", "Department of Legislative Reference",
         "All rights reserved", "For information –  call, write, or fax:",
-        "626 City Hall", "Baltimore, Maryland 21202", "Tel: (410) 396-4730  F  Fax: (410) 396-8483"
+        "626 City Hall", "Baltimore, Maryland 21202", "Tel: (410) 396-4730  F  Fax: (410) 396-8483",
+        "TABLE OF SUBTITLES", "ARTICLE 13", "HOUSING AND URBAN RENEWAL", "(As Last Amended by Ords. 22-124 and 22-125)"
     ]
 
     for item in remove_list:
         text = text.replace(item, '')
     text = text.replace("D\nIVISION", "DIVISION")
+    # Remove excessive whitespace
+    text = re.sub(r'\n\s*\n', '\n', text)
     return text.strip()
 
 
@@ -31,14 +35,13 @@ def extract_sections_titles_subtitles(text):
     current_subtitle = ""
     current_content = ""
 
-    # Adjust the markers based on the sample provided
     title_marker = "DIVISION"
-    subtitle_marker = "SUBTITLE"
+    subtitle_marker = "Subtitle"
 
     for line in text.split('\n'):
-        if title_marker in line and ":" in line:   # This will catch "DIVISION I: GENERAL ADMINISTRATION"
+        if title_marker in line:
             # Save the current section before starting a new one
-            if current_content or current_subtitle:   # Save even if content is empty, as long as there's a subtitle
+            if current_content or current_subtitle:
                 sections.append({
                     'title': current_title,
                     'subtitle': current_subtitle,
@@ -49,13 +52,13 @@ def extract_sections_titles_subtitles(text):
             current_title = line.strip()
             current_subtitle = ""
             current_content = ""
-        elif subtitle_marker in line and any(char.isdigit() for char in line):   # This will catch "SUBTITLE 1"
+        elif subtitle_marker in line:
             current_subtitle = line.strip()
         else:
             current_content += line + '\n'
 
-    # Don't forget to save the last section
-    if current_content or current_subtitle:   # Save even if content is empty, as long as there's a subtitle
+    # Save the last section
+    if current_content or current_subtitle:
         sections.append({
             'title': current_title,
             'subtitle': current_subtitle,
@@ -64,3 +67,32 @@ def extract_sections_titles_subtitles(text):
 
     return sections
 
+
+def search_sections(query, sections):
+    for section in sections:
+        if query.lower() in section['content'].lower():
+            return section['content']
+    return None
+
+
+# Extract text from the PDF
+pdf_content = extract_text_from_pdf('legaldocs/Article-13-housing.pdf')
+print("\n===== First 500 characters of the PDF content =====")
+print(pdf_content[:500])  # print the first 500 characters
+
+# Clean the text
+cleaned_content = clean_text(pdf_content)
+print("\n===== First 500 characters of the cleaned content =====")
+print(cleaned_content[:500])  # print the first 500 characters after cleaning
+
+# Extract sections based on divisions and subtitles
+sections = extract_sections_titles_subtitles(cleaned_content)
+print("\n===== First 3 sections =====")
+for section in sections[:3]:  # print details of the first 3 sections
+    print("\nTitle:", section['title'])
+    print("Subtitle:", section['subtitle'])
+    print("Content (first 200 characters):", section['content'][:200], "...\n")
+
+test_query = "housing"  # or another known keyword
+result = search_sections(test_query, sections)
+print(result[:500]) if result else print("No match found.")
