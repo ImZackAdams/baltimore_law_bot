@@ -31,14 +31,14 @@ def extract_sections_titles_subtitles(text):
     current_subtitle = ""
     current_content = ""
 
-    # You would need to adapt these to the actual markers or formatting used in your document
-    title_marker = "TITLE:"
-    subtitle_marker = "SUBTITLE:"
+    # Adjust the markers based on the sample provided
+    title_marker = "DIVISION"
+    subtitle_marker = "SUBTITLE"
 
     for line in text.split('\n'):
-        if title_marker in line:
+        if title_marker in line and ":" in line:   # This will catch "DIVISION I: GENERAL ADMINISTRATION"
             # Save the current section before starting a new one
-            if current_content:
+            if current_content or current_subtitle:   # Save even if content is empty, as long as there's a subtitle
                 sections.append({
                     'title': current_title,
                     'subtitle': current_subtitle,
@@ -46,16 +46,16 @@ def extract_sections_titles_subtitles(text):
                 })
 
             # Start a new section
-            current_title = line.replace(title_marker, '').strip()
+            current_title = line.strip()
             current_subtitle = ""
             current_content = ""
-        elif subtitle_marker in line:
-            current_subtitle = line.replace(subtitle_marker, '').strip()
+        elif subtitle_marker in line and any(char.isdigit() for char in line):   # This will catch "SUBTITLE 1"
+            current_subtitle = line.strip()
         else:
             current_content += line + '\n'
 
     # Don't forget to save the last section
-    if current_content:
+    if current_content or current_subtitle:   # Save even if content is empty, as long as there's a subtitle
         sections.append({
             'title': current_title,
             'subtitle': current_subtitle,
@@ -63,3 +63,4 @@ def extract_sections_titles_subtitles(text):
         })
 
     return sections
+

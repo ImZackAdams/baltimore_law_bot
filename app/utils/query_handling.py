@@ -3,13 +3,14 @@ from sentence_transformers import util
 from app.models.embeddings import model, qa_model, tokenizer, answer_question  # Adjust imports as necessary
 from app.utils.pdf_processing import extract_sections_titles_subtitles
 from app.utils.text_utils import retrieve_top_n_sections, is_unsatisfactory, reformulate_query
+from .text_utils import split_sections
 
 
 # ... (Additional imports and other utility functions)
 
-def reformulate_query(query):
-    # For now, returning the query unchanged.
-    # Implement actual reformulation logic based on your needs.
+def refine_query(query):
+    # For now, we'll return the query as it is. In a more advanced system, you can use SentenceTransformer
+    # or another model to find a more refined or similar query from a predefined set.
     return query
 
 
@@ -36,35 +37,35 @@ def retrieve_top_n_sections(refined_query, embeddings):
 
 
 def handle_user_query(query, main_law_text):
-    refined_query = reformulate_query(query)
-    print(f"Refined Query: {refined_query}")  # Debug: print refined query
+    # Use SentenceTransformer to refine the query
+    refined_query = refine_query(query)
 
-    sections = extract_sections_titles_subtitles(main_law_text)
+    print(f"Refined Query: {refined_query}")
 
-    best_section_title, best_section_subtitle, best_answer = "", "", ""
-    max_confidence = float('-inf')
+    # Split the main text into sections based on your delimiter (make sure you've defined your split_sections function)
+    sections = split_sections(main_law_text)
 
+    answers = []
+
+    # Process each section
     for section in sections:
         try:
-            title = section['title']
-            subtitle = section['subtitle']
-            content = section['content']
+            print(f"Processing section: {section}")  # Debug print
+            title, subtitle, content = section['title'], section['subtitle'], section['content']
 
-            # Get the answer and its confidence for the current section
-            ans, confidence = answer_question(refined_query, content)
+            ans = answer_question(refined_query, content)
 
-            if confidence > max_confidence:  # Replace with your criteria (e.g., length of answer)
-                best_answer = ans
-                best_section_title = title
-                best_section_subtitle = subtitle
-                max_confidence = confidence
+            if not is_unsatisfactory(ans):
+                answers.append((title, subtitle, ans))
 
         except Exception as e:
             print(f"Error in processing section: {e}")
             continue
 
-    if best_answer:
-        return best_section_title, best_section_subtitle, best_answer
-
-    print("No relevant answer found")
-    return best_section_title, best_section_subtitle, "Sorry, I couldn't find a relevant answer to your question. Please try rephrasing or asking another question."
+    # After processing all sections, find the best answer
+    if answers:
+        best_answer = max(answers, key=lambda x: len(x[2]))  # You can use other metrics if you wish
+        return best_answer
+    else:
+        return None, None, "Sorry, I couldn't find a relevant answer to your question. Please try rephrasing or " \
+                           "asking another question. "

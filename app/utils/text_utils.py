@@ -94,3 +94,30 @@ def reformulate_query(query):
     # Optionally add more sophisticated reformulation techniques here
 
     return ' '.join(cleaned_words)
+
+
+def split_sections(main_content):
+    """
+    Split the main content into sections based on divisions and subtitles.
+
+    Args:
+    - main_content (str): The entire law text.
+
+    Returns:
+    - List[Dict]: A list of dictionaries where each dictionary represents a section with keys 'title', 'subtitle', and 'content'.
+    """
+    sections = []
+
+    # Extract division data
+    division_data = extract_divisions_and_subtitles(main_content)  # from text_utils.py
+
+    for division, subtitles in division_data.items():
+        for subtitle in subtitles:
+            section_content = extract_content_from_section(subtitle, main_content)
+            sections.append({
+                'title': division,
+                'subtitle': subtitle,
+                'content': section_content
+            })
+
+    return sections
