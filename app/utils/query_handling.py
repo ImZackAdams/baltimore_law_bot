@@ -1,5 +1,4 @@
 from sentence_transformers import util
-
 from app.models.embeddings import model, qa_model, tokenizer, answer_question  # Adjust imports as necessary
 from app.utils.pdf_processing import extract_sections_titles_subtitles
 from app.utils.text_utils import retrieve_top_n_sections, is_unsatisfactory, reformulate_query
@@ -14,17 +13,21 @@ def refine_query(query):
     return query
 
 
-def retrieve_top_n_sections(refined_query, embeddings):
+def retrieve_top_n_sections(refined_query, sections):
     # assuming model is your SentenceTransformer model
     query_embedding = model.encode(refined_query, convert_to_tensor=True)
 
     print("Query Embedding:", query_embedding)  # Printing Query Embedding
 
     similarities = []
-    for text, embed in embeddings.items():
+
+    for section in sections:
+        text = section['content']
+        embed = model.encode(text, convert_to_tensor=True)
+
         print(f"Section: {text}, Embedding: {embed}")  # Printing each section and its embedding
         sim = util.pytorch_cos_sim(query_embedding, embed)  # assuming util is from sentence_transformers
-        similarities.append((text, float(sim)))
+        similarities.append((section, float(sim)))  # change from text to section
         print(f"Similarity between {text} and query: {float(sim)}")  # Printing calculated similarity
 
     sorted_sections = sorted(similarities, key=lambda x: x[1], reverse=True)
@@ -37,18 +40,20 @@ def retrieve_top_n_sections(refined_query, embeddings):
 
 
 def handle_user_query(query, main_law_text):
-    # Use SentenceTransformer to refine the query
+    # 1. Use SentenceTransformer to refine the query
     refined_query = refine_query(query)
-
     print(f"Refined Query: {refined_query}")
 
-    # Split the main text into sections based on your delimiter (make sure you've defined your split_sections function)
-    sections = split_sections(main_law_text)
+    # 2. Split the main text into sections based on your delimiter
+    sections = extract_sections_titles_subtitles(main_law_text)  # Using the extraction function from pdf_processing
 
+    # 3. Use SentenceTransformer to retrieve the top N sections based on the refined query
+    top_sections = retrieve_top_n_sections(refined_query, sections)
+
+    # 4. Process these top sections to get answers
     answers = []
 
-    # Process each section
-    for section in sections:
+    for section in top_sections:
         try:
             print(f"Processing section: {section}")  # Debug print
             title, subtitle, content = section['title'], section['subtitle'], section['content']
@@ -62,7 +67,7 @@ def handle_user_query(query, main_law_text):
             print(f"Error in processing section: {e}")
             continue
 
-    # After processing all sections, find the best answer
+    # 5. After processing the top sections, find the best answer
     if answers:
         best_answer = max(answers, key=lambda x: len(x[2]))  # You can use other metrics if you wish
         return best_answer

@@ -1,6 +1,6 @@
 import torch
 from transformers import BertTokenizer, BertForQuestionAnswering
-from sentence_transformers import SentenceTransformer, util
+from sentence_transformers import SentenceTransformer
 
 # Initializations
 model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
@@ -12,12 +12,12 @@ def answer_question(question, context):
     inputs = tokenizer(question, context, return_tensors="pt", max_length=512, truncation=True)
     print(f"Question: {question}")  # Debug
     print(f"Context Length: {len(context)}")  # Debug
-    input_ids = inputs["input_ids"].tolist()[0]
 
+    input_ids = inputs["input_ids"].tolist()[0]
     outputs = qa_model(**inputs)
+
     answer_start_scores = outputs.start_logits
     answer_end_scores = outputs.end_logits
-
     answer_start = torch.argmax(answer_start_scores)
     answer_end = torch.argmax(answer_end_scores) + 1
 
@@ -27,8 +27,21 @@ def answer_question(question, context):
 
 
 def create_combined_embeddings(texts):
-    # This function takes a list of texts and returns a dictionary where keys are texts and values are embeddings
     embeddings_dict = {}
     for text in texts:
         embeddings_dict[text] = model.encode(text, convert_to_tensor=True)
     return embeddings_dict
+
+
+def debug_tokenization(question, context):
+    chunk_size = 400  # tokens
+    overlap = 50  # tokens
+
+    context_tokens = tokenizer.tokenize(context)
+    chunk_texts = [context_tokens[i:i + chunk_size] for i in range(0, len(context_tokens), chunk_size - overlap)]
+
+    for idx, chunk in enumerate(chunk_texts):
+        chunk_text = tokenizer.convert_tokens_to_string(chunk)
+        print(f"Chunk {idx + 1}: {chunk_text[:100]}...")  # Print the beginning of each chunk
+
+    return chunk_texts

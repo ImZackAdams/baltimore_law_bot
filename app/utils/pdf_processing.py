@@ -36,11 +36,10 @@ def extract_sections_titles_subtitles(text):
     current_content = ""
 
     title_marker = "DIVISION"
-    subtitle_marker = "Subtitle"
+    subtitle_marker = "SUBTITLE"
 
     for line in text.split('\n'):
         if title_marker in line:
-            # Save the current section before starting a new one
             if current_content or current_subtitle:
                 sections.append({
                     'title': current_title,
@@ -48,16 +47,21 @@ def extract_sections_titles_subtitles(text):
                     'content': current_content.strip(),
                 })
 
-            # Start a new section
             current_title = line.strip()
             current_subtitle = ""
             current_content = ""
         elif subtitle_marker in line:
+            if current_subtitle:  # Save the previous subtitle before starting a new one
+                sections.append({
+                    'title': current_title,
+                    'subtitle': current_subtitle,
+                    'content': current_content.strip(),
+                })
+                current_content = ""  # Reset content for the new subtitle
             current_subtitle = line.strip()
         else:
             current_content += line + '\n'
 
-    # Save the last section
     if current_content or current_subtitle:
         sections.append({
             'title': current_title,
@@ -66,6 +70,7 @@ def extract_sections_titles_subtitles(text):
         })
 
     return sections
+
 
 
 def search_sections(query, sections):
