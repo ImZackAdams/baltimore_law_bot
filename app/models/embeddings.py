@@ -10,6 +10,8 @@ tokenizer = BertTokenizer.from_pretrained('bert-large-uncased-whole-word-masking
 
 def answer_question(question, context):
     inputs = tokenizer(question, context, return_tensors="pt", max_length=512, truncation=True)
+    print(f"Question: {question}")  # Debug
+    print(f"Context Length: {len(context)}")  # Debug
     input_ids = inputs["input_ids"].tolist()[0]
 
     outputs = qa_model(**inputs)
@@ -20,7 +22,7 @@ def answer_question(question, context):
     answer_end = torch.argmax(answer_end_scores) + 1
 
     answer = tokenizer.convert_tokens_to_string(tokenizer.convert_ids_to_tokens(input_ids[answer_start:answer_end]))
-    # You can further filter or process the answer if needed
+    print(f"Answer from answer_question: {answer}")  # Debug
     return answer
 
 

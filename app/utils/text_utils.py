@@ -18,9 +18,13 @@ def extract_content_from_section(section_title, main_content):
     return main_content[start_idx:end_idx]
 
 
-def is_unsatisfactory(answer):
-    if "division" in answer.lower() or "subtitle" in answer.lower():
+def is_unsatisfactory(ans):
+    if not ans:
         return True
+    unsatisfactory_tokens = ["[SEP]", "[CLS]", "..."]
+    for token in unsatisfactory_tokens:
+        if token in ans:
+            return True
     return False
 
 

@@ -35,58 +35,36 @@ def retrieve_top_n_sections(refined_query, embeddings):
     return top_sections
 
 
-def is_unsatisfactory(ans):
-    # For now, returning False.
-    # Implement logic to determine whether the provided answer is unsatisfactory.
-    return False
-
-
-def handle_user_query(query, main_law_text, embeddings):
-    """
-    Handle the user's query, extract relevant sections, and get the best answer.
-
-    :param query: The user's question or query.
-    :param main_law_text: The main text content to search within.
-    :param embeddings: The embeddings of the sections or the entire main_law_text.
-    :return: Tuple containing the best section title, subtitle, and the best answer.
-    """
+def handle_user_query(query, main_law_text):
     refined_query = reformulate_query(query)
     print(f"Refined Query: {refined_query}")  # Debug: print refined query
 
-    best_section_title, best_section_subtitle, best_answer = "", "", ""
-
-    try:
-        top_sections = retrieve_top_n_sections(refined_query, embeddings)
-    except Exception as e:
-        print(f"Error retrieving top sections: {e}")  # Debug: print error during top section retrieval
-        return best_section_title, best_section_subtitle, f"Error retrieving top sections: {e}"
-
-    if not top_sections:
-        print("No top sections identified")  # Debug: print when no top sections are identified
-        return best_section_title, best_section_subtitle, "Couldn't identify top sections. Please refine your query."
-
-    # Assuming extract_sections_titles_subtitles is a method that you have to implement to extract the relevant sections
     sections = extract_sections_titles_subtitles(main_law_text)
 
-    answers = []
+    best_section_title, best_section_subtitle, best_answer = "", "", ""
+    max_confidence = float('-inf')
+
     for section in sections:
         try:
             title = section['title']
             subtitle = section['subtitle']
             content = section['content']
 
-            ans = answer_question(refined_query, content)
+            # Get the answer and its confidence for the current section
+            ans, confidence = answer_question(refined_query, content)
 
-            if not is_unsatisfactory(ans):
-                answers.append((title, subtitle, ans))
+            if confidence > max_confidence:  # Replace with your criteria (e.g., length of answer)
+                best_answer = ans
+                best_section_title = title
+                best_section_subtitle = subtitle
+                max_confidence = confidence
+
         except Exception as e:
-            print(f"Error in processing section: {e}")  # Debug: print error during section processing
-            continue  # Move to the next section if there's an error processing the current one
+            print(f"Error in processing section: {e}")
+            continue
 
-    if answers:
-        best_section_title, best_section_subtitle, best_answer = max(answers, key=lambda x: len(x[2]))
+    if best_answer:
         return best_section_title, best_section_subtitle, best_answer
 
-    print("No relevant answer found")  # Debug: print when no relevant answer is found
-    return best_section_title, best_section_subtitle, "Sorry, I couldn't find a relevant answer to your question. " \
-                                                      "Please try rephrasing or asking another question. "
+    print("No relevant answer found")
+    return best_section_title, best_section_subtitle, "Sorry, I couldn't find a relevant answer to your question. Please try rephrasing or asking another question."
