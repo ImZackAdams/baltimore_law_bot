@@ -7,13 +7,15 @@ def debug_bert():
     test_answer = answer_question(test_question, test_context)
     print(test_answer)  # Expected: "Joe Biden"
 
-
 def debug_with_chunks(context):
     chunks = debug_tokenization("affordable housing", context)
-    # Test a relevant chunk, you can change the index
-    sample_chunk = chunks[3]  # Change index to a relevant chunk
-    sample_answer = answer_question("affordable housing", tokenizer.convert_tokens_to_string(sample_chunk))
-    print(sample_answer)
+
+    for i, chunk in enumerate(chunks):
+        print(f"Chunk {i + 1}: {tokenizer.convert_tokens_to_string(chunk)}")
+        sample_answer = answer_question("affordable housing", tokenizer.convert_tokens_to_string(chunk))
+        print(f"Answer from chunk {i + 1}: {sample_answer}")
+        print('-' * 50)
+
 
 
 if __name__ == "__main__":
