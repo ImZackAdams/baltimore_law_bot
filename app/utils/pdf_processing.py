@@ -1,8 +1,15 @@
 import PyPDF2
 import re
+import os
 
+ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+
+
+# Now, ROOT_DIR contains the path "/Users/zack/Desktop/baltimore-law-bot/"
 
 def extract_text_from_pdf(pdf_path='legaldocs/Article-13-housing.pdf'):
+    # Update the pdf_path to be relative to the ROOT_DIR
+    pdf_path = os.path.join(ROOT_DIR, pdf_path)
     text = ''
     with open(pdf_path, 'rb') as file:
         pdf = PyPDF2.PdfReader(file)
@@ -70,7 +77,6 @@ def extract_sections_titles_subtitles(text):
         })
 
     return sections
-
 
 
 def search_sections(query, sections):

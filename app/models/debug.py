@@ -1,24 +1,5 @@
-from embeddings import tokenizer, answer_question
-
-
-def debug_tokenization(question, context):
-    chunk_size = 400  # tokens
-    overlap = 50  # tokens
-
-    # Validate the length of the context
-    if len(context) <= 10:
-        print("Full context:", context)
-        print(f"Context length (characters): {len(context)}")
-        print("Warning: Context is too short. Consider providing a longer context.")
-
-    context_tokens = tokenizer.tokenize(context)
-    chunk_texts = [context_tokens[i:i + chunk_size] for i in range(0, len(context_tokens), chunk_size - overlap)]
-
-    for idx, chunk in enumerate(chunk_texts):
-        chunk_text = tokenizer.convert_tokens_to_string(chunk)
-        print(f"Chunk {idx + 1}: {chunk_text[:100]}...")  # Print the beginning of each chunk
-
-    return chunk_texts
+from embeddings import tokenizer, answer_question, debug_tokenization
+from app.utils.pdf_processing import extract_text_from_pdf, clean_text
 
 
 def debug_bert():
@@ -39,8 +20,9 @@ def debug_with_chunks(context):
 
 
 if __name__ == "__main__":
-    # Assuming you have the same context as before
-    context = "..."  # Your cleaned and parsed context here
+    # Extract the content of your legal document from the PDF, clean it, and use it as the context
+    raw_context = extract_text_from_pdf('legaldocs/Article-13-housing.pdf')
+    context = clean_text(raw_context)
 
     print("Debugging BERT on a simple test...")
     debug_bert()
