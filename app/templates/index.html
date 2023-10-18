@@ -39,20 +39,24 @@
 
 <!-- Custom JS to handle chat interactions -->
 <script>
-    $(document).ready(function () {
-        $('#sendBtn').click(function () {
-            let userQuery = $('#userInput').val();
+ $(document).ready(function () {
+    $('#sendBtn').click(function () {
+        let userQuery = $('#userInput').val();
 
-            if (userQuery.trim() !== '') {
-                // Append the user's query to the chatbox
-                $('#chatBox').append('<div class="text-right mb-2"><strong>You:</strong> ' + userQuery + '</div>');
+        if (userQuery.trim() !== '') {
+            // Append the user's query to the chatbox
+            $('#chatBox').append('<div class="text-right mb-2"><strong>You:</strong> ' + userQuery + '</div>');
 
-                // TODO: Send userQuery to the backend, get response, and display it
+            // Send userQuery to the backend and get response
+            $.post('/chatbot', { query: userQuery }, function(data) {
+                $('#chatBox').append('<div class="text-left mb-2"><strong>Bot:</strong> ' + data.response + '</div>');
+            }, 'json');
 
-                $('#userInput').val('');  // Clear the input field
-            }
-        });
+            $('#userInput').val('');  // Clear the input field
+        }
     });
+});
+
 </script>
 
 </body>

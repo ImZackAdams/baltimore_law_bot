@@ -1,11 +1,11 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 
 app = Flask(__name__)
 
 
 @app.route('/')
 def index():
-    return open('index.html').read()
+    return render_template('index.html')
 
 
 @app.route('/chatbot', methods=['POST'])
