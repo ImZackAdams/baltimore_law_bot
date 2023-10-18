@@ -39,7 +39,7 @@
 
 <!-- Custom JS to handle chat interactions -->
 <script>
- $(document).ready(function () {
+$(document).ready(function () {
     $('#sendBtn').click(function () {
         let userQuery = $('#userInput').val();
 
@@ -48,9 +48,16 @@
             $('#chatBox').append('<div class="text-right mb-2"><strong>You:</strong> ' + userQuery + '</div>');
 
             // Send userQuery to the backend and get response
-            $.post('/chatbot', { query: userQuery }, function(data) {
-                $('#chatBox').append('<div class="text-left mb-2"><strong>Bot:</strong> ' + data.response + '</div>');
-            }, 'json');
+            $.ajax({
+                url: '/chatbot',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ message: userQuery }),  // Note that we changed 'query' to 'message'
+                dataType: 'json',
+                success: function(data) {
+                    $('#chatBox').append('<div class="text-left mb-2"><strong>Bot:</strong> ' + data.response + '</div>');
+                }
+            });
 
             $('#userInput').val('');  // Clear the input field
         }
@@ -58,6 +65,7 @@
 });
 
 </script>
+
 
 </body>
 </html>

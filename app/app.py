@@ -9,11 +9,14 @@ def index():
 
 
 @app.route('/chatbot', methods=['POST'])
-def chatbot_response():
-    user_query = request.json['query']
-    # For now, we'll just echo back the query.
-    # In a real-world scenario, you'd pass this to your NLP model or logic for processing.
-    return jsonify({"response": f"You said: {user_query}"})
+def chatbot_endpoint():
+    data = request.json
+    user_message = data.get("message", "")  # getting the user message
+
+    # For now, let's just return the same message to ensure it's working
+    response_message = "You said: " + user_message
+
+    return jsonify(response=response_message)
 
 
 if __name__ == '__main__':
