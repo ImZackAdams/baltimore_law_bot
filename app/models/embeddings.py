@@ -37,7 +37,17 @@ def debug_tokenization(question, context):
     chunk_size = 400  # tokens
     overlap = 50  # tokens
 
+    # Print the entire context for debugging
+    print("Full context:", context)
+    print("Context length (characters):", len(context))
+
     context_tokens = tokenizer.tokenize(context)
+
+    # Check if tokenized context is shorter than chunk size
+    if len(context_tokens) < chunk_size:
+        print("Warning: Context is too short. Consider providing a longer context.")
+        return [context_tokens]
+
     chunk_texts = [context_tokens[i:i + chunk_size] for i in range(0, len(context_tokens), chunk_size - overlap)]
 
     for idx, chunk in enumerate(chunk_texts):
