@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baltimore Law Chatbot</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">Baltimore Law Chatbot</div>
+                <div class="card-body">
+                    <div id="chatBox" class="mb-3" style="height: 300px; overflow-y: scroll;">
+                        <!-- Chat messages will appear here -->
+                    </div>
+                    <div class="input-group">
+                        <input type="text" id="userInput" class="form-control" placeholder="Type your question here...">
+                        <div class="input-group-append">
+                            <button id="sendBtn" class="btn btn-primary" type="button">Send</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Optional: jQuery and Bootstrap JS -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<!-- Custom JS to handle chat interactions -->
+<script>
+    $(document).ready(function () {
+        $('#sendBtn').click(function () {
+            let userQuery = $('#userInput').val();
+
+            if (userQuery.trim() !== '') {
+                // Append the user's query to the chatbox
+                $('#chatBox').append('<div class="text-right mb-2"><strong>You:</strong> ' + userQuery + '</div>');
+
+                // TODO: Send userQuery to the backend, get response, and display it
+
+                $('#userInput').val('');  // Clear the input field
+            }
+        });
+    });
+</script>
+
+</body>
+</html>
