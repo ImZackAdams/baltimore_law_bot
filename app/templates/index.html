@@ -1,71 +1,80 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Baltimore Law Chatbot</title>
-
-    <!-- Bootstrap CSS -->
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <title>Baltimore Housing Rights Chatbot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+        .chat-container {
+            width: 400px;
+            background: white;
+            padding: 20px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+        }
+        .messages {
+            height: 300px;
+            overflow-y: scroll;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        .message {
+            margin: 5px 0;
+        }
+        .bot-message {
+            color: green;
+        }
+    </style>
 </head>
-
 <body>
-
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header bg-primary text-white">Baltimore Law Chatbot</div>
-                <div class="card-body">
-                    <div id="chatBox" class="mb-3" style="height: 300px; overflow-y: scroll;">
-                        <!-- Chat messages will appear here -->
-                    </div>
-                    <div class="input-group">
-                        <input type="text" id="userInput" class="form-control" placeholder="Type your question here...">
-                        <div class="input-group-append">
-                            <button id="sendBtn" class="btn btn-primary" type="button">Send</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <div class="chat-container">
+        <div class="messages" id="messages">
+            <!-- Messages will be displayed here -->
         </div>
+        <input type="text" id="userInput" placeholder="Type your message..." style="width: 80%;">
+        <button onclick="sendMessage()">Send</button>
     </div>
-</div>
 
-<!-- Optional: jQuery and Bootstrap JS -->
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        function sendMessage() {
+            var userInput = document.getElementById('userInput').value;
+            if (userInput === '') return;
 
-<!-- Custom JS to handle chat interactions -->
-<script>
-$(document).ready(function () {
-    $('#sendBtn').click(function () {
-        let userQuery = $('#userInput').val();
+            var messagesDiv = document.getElementById('messages');
+            var userMessageDiv = document.createElement('div');
+            userMessageDiv.className = 'message';
+            userMessageDiv.textContent = 'You: ' + userInput;
+            messagesDiv.appendChild(userMessageDiv);
 
-        if (userQuery.trim() !== '') {
-            // Append the user's query to the chatbox
-            $('#chatBox').append('<div class="text-right mb-2"><strong>You:</strong> ' + userQuery + '</div>');
-
-            // Send userQuery to the backend and get response
-            $.ajax({
-                url: '/chatbot',
-                type: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify({ message: userQuery }),  // Note that we changed 'query' to 'message'
-                dataType: 'json',
-                success: function(data) {
-                    $('#chatBox').append('<div class="text-left mb-2"><strong>Bot:</strong> ' + data.response + '</div>');
-                }
+            fetch('/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ message: userInput })
+            })
+            .then(response => response.json())
+            .then(data => {
+                var botMessageDiv = document.createElement('div');
+                botMessageDiv.className = 'message bot-message';
+                botMessageDiv.textContent = 'Bot: ' + data.section + ': ' + data.content;
+                messagesDiv.appendChild(botMessageDiv);
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
             });
 
-            $('#userInput').val('');  // Clear the input field
+            document.getElementById('userInput').value = '';
         }
-    });
-});
-
-</script>
-
-
+    </script>
 </body>
 </html>
